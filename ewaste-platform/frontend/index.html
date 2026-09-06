@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Punarvapar</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F3D2B">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+<div id="adminView" class="admin-view" style="display:none">
+  <div class="admin-brand">
+    <div class="admin-logo">🛡️</div>
+    <div><h1>Punarvapar Admin</h1><p>Certification verification portal</p></div>
+  </div>
+
+  <div id="adminLoginCard" class="admin-card">
+    <h2>Administrator Login</h2>
+    <p class="auth-help">This portal is restricted to authorized administrators.</p>
+    <form id="adminLoginForm">
+      <label class="auth-label">Admin username
+        <input class="auth-input" id="adminUsername" autocomplete="username" required>
+      </label>
+      <label class="auth-label">Admin password
+        <input class="auth-input" id="adminPassword" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="btn btn-primary auth-submit" type="submit">Enter admin portal</button>
+    </form>
+    <div id="adminLoginMessage" class="auth-message" role="alert"></div>
+  </div>
+
+  <div id="adminPortal" class="admin-portal" style="display:none">
+    <div class="admin-toolbar">
+      <div><div class="eyebrow">ADMIN ONLY</div><h2>Verification Queue</h2></div>
+      <button id="adminLogoutBtn" class="logout-small" type="button">Logout</button>
+    </div>
+    <p class="auth-help">Review submitted certificates before granting collector or recycler access.</p>
+    <div class="admin-summary" id="adminSummary"></div>
+    <div class="admin-section-title">Pending collector applications</div>
+    <div id="adminCollectors"></div>
+    <div class="admin-section-title">Pending authorized recycler applications</div>
+    <div id="adminRecyclers"></div>
+    <div class="admin-section-title">Previously reviewed</div>
+    <div id="adminReviewed"></div>
+  </div>
+</div>
+<div id="authView" class="auth-view">
+  <div class="auth-brand">
+    <div class="auth-logo">♻️</div>
+    <div>
+      <h1>Punarvapar</h1>
+      <p>Formal e-waste recycling network</p>
+    </div>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button id="loginTab" class="auth-tab active" type="button">Login</button>
+      <button id="registerTab" class="auth-tab" type="button">Register</button>
+    </div>
+
+    <div id="authRoleTabs" class="role-tabs">
+      <button class="role-tab active" data-role="collector" type="button">👤 Scrap Collector</button>
+      <button class="role-tab" data-role="recycler" type="button">🏭 Authorized Recycler</button>
+    </div>
+
+    <div id="loginPanel">
+      <h2 id="authTitle">Collector Login</h2>
+      <p class="auth-help">Use your registered phone number and password.</p>
+      <form id="loginForm">
+        <label class="auth-label">Phone number
+          <input class="auth-input" id="loginPhone" type="tel" inputmode="tel" autocomplete="username" placeholder="+91 98765 43210" required>
+        </label>
+        <label class="auth-label">Password
+          <input class="auth-input" id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter password" required>
+        </label>
+        <button class="btn btn-primary auth-submit" type="submit">Login securely</button>
+      </form>
+      <div class="demo-box">
+        <strong>Demo access</strong>
+        <span id="demoCredentials">Collector: 9999999999 · demo1234</span>
+      </div>
+    </div>
+
+    <div id="registerPanel" style="display:none">
+      <h2 id="registerTitle">Collector Registration</h2>
+      <p class="auth-help">Submit your details and certification. Access is enabled after verification.</p>
+      <form id="registerForm" enctype="multipart/form-data">
+        <label class="auth-label">Full name
+          <input class="auth-input" id="regName" type="text" autocomplete="name" required>
+        </label>
+        <label class="auth-label">Phone number
+          <input class="auth-input" id="regPhone" type="tel" inputmode="tel" autocomplete="tel" required>
+        </label>
+        <div class="form-section-label">1 · Personal details</div>
+        <label class="auth-label">Email address
+          <input class="auth-input" id="regEmail" type="email" autocomplete="email" placeholder="you@example.com">
+        </label>
+        <div class="form-grid-2">
+          <label class="auth-label">City / Town
+            <input class="auth-input" id="regCity" type="text" placeholder="Nashik">
+          </label>
+          <label class="auth-label">District
+            <input class="auth-input" id="regDistrict" type="text" placeholder="Nashik">
+          </label>
+        </div>
+        <div class="form-grid-2">
+          <label class="auth-label">PIN code
+            <input class="auth-input" id="regPincode" type="text" inputmode="numeric" maxlength="6" placeholder="422001">
+          </label>
+          <label class="auth-label">Availability
+            <select class="auth-input" id="regAvailability"><option>Morning</option><option>Afternoon</option><option>Full day</option><option selected>Flexible</option></select>
+          </label>
+        </div>
+        <label class="auth-label">Full operating / home address
+          <textarea class="auth-input" id="regAddress" rows="2" placeholder="Area, street, city and district"></textarea>
+        </label>
+        <div class="form-section-label">2 · Work profile</div>
+        <div class="form-grid-2">
+          <label class="auth-label">Working area
+            <input class="auth-input" id="regArea" type="text" placeholder="Nashik city / nearby talukas">
+          </label>
+          <label class="auth-label">Working radius
+            <select class="auth-input" id="regRadius"><option value="5">5 km</option><option value="10">10 km</option><option selected value="15">15 km</option><option value="25">25 km</option><option value="50">50 km+</option></select>
+          </label>
+        </div>
+        <label class="auth-label">Preferred language
+          <select class="auth-input" id="preferredLanguage"><option value="mr">मराठी</option><option value="hi">हिन्दी</option><option value="en">English</option></select>
+        </label>
+
+        <label class="auth-label">Password
+          <input class="auth-input" id="regPassword" type="password" minlength="6" autocomplete="new-password" required>
+        </label>
+
+        <div id="collectorFields">
+          <label class="auth-label">Collection certificate / permit number
+            <input class="auth-input" id="certNumber" type="text" placeholder="Certificate / permit ID" required>
+          </label>
+          <label class="auth-label">Operating location
+            <input class="auth-input" id="operatingLocation" type="text" placeholder="City / district" required>
+          </label>
+          <div class="form-grid-2">
+            <label class="auth-label">Vehicle / pickup mode
+              <select class="auth-input" id="vehicleType"><option>Motorcycle</option><option>Auto / three-wheeler</option><option>Small goods vehicle</option><option>Shared transport</option><option>Other</option></select>
+            </label>
+            <label class="auth-label">Experience
+              <select class="auth-input" id="yearsExperience"><option>New to collection</option><option>1–2 years</option><option>3–5 years</option><option>5+ years</option></select>
+            </label>
+          </div>
+          <div class="form-grid-2">
+            <label class="auth-label">Daily collection capacity
+              <select class="auth-input" id="dailyCapacity"><option>&lt;25 kg</option><option>25–50 kg</option><option>50–100 kg</option><option>100+ kg</option></select>
+            </label>
+            <label class="auth-label">Payment preference
+              <select class="auth-input" id="paymentPreference"><option>UPI / digital</option><option>Cash</option><option>Either</option></select>
+            </label>
+          </div>
+          <div class="checkbox-group"><div class="auth-label">Materials you usually collect</div>
+            <label><input type="checkbox" name="collection_types" value="PCB"> PCB</label>
+            <label><input type="checkbox" name="collection_types" value="cable"> Cable</label>
+            <label><input type="checkbox" name="collection_types" value="battery"> Battery</label>
+            <label><input type="checkbox" name="collection_types" value="CRT"> CRT</label>
+            <label><input type="checkbox" name="collection_types" value="LCD"> LCD</label>
+            <label><input type="checkbox" name="collection_types" value="motor"> Motor</label>
+            <label><input type="checkbox" name="collection_types" value="mixed_plastic"> Plastic</label>
+            <label><input type="checkbox" name="collection_types" value="metal"> Metal</label>
+            <label><input type="checkbox" name="collection_types" value="hard_drive"> Hard Drive</label>
+            <label><input type="checkbox" name="collection_types" value="power_supply"> Power Supply</label>
+            <label><input type="checkbox" name="collection_types" value="mobile"> Mobile Phone</label>
+            <label><input type="checkbox" name="collection_types" value="printer"> Printer</label>
+            <label><input type="checkbox" name="collection_types" value="keyboard_mouse"> Keyboard &amp; Mouse</label>
+            <label><input type="checkbox" name="collection_types" value="glass"> Electronic Glass</label>
+            <label><input type="checkbox" name="collection_types" value="ferrous_metal"> Iron / Steel</label>
+            <label><input type="checkbox" name="collection_types" value="aluminum"> Aluminum</label>
+            <label><input type="checkbox" name="collection_types" value="copper"> Copper</label>
+            <label><input type="checkbox" name="collection_types" value="stainless_steel"> Stainless Steel</label>
+            <label><input type="checkbox" name="collection_types" value="brass"> Brass</label>
+            <label><input type="checkbox" name="collection_types" value="rubber"> Rubber</label>
+            <label><input type="checkbox" name="collection_types" value="router"> Router</label>
+            <label><input type="checkbox" name="collection_types" value="camera"> Camera</label>
+            <label><input type="checkbox" name="collection_types" value="speaker"> Speaker</label>
+            <label><input type="checkbox" name="collection_types" value="game_console"> Game Console</label>
+            <label><input type="checkbox" name="collection_types" value="solar_panel"> Solar Panel</label>
+            <label><input type="checkbox" name="collection_types" value="led_bulb"> LED Bulb</label>
+            <label><input type="checkbox" name="collection_types" value="small_appliance"> Small Appliance</label>
+            <label><input type="checkbox" name="collection_types" value="cardboard"> Cardboard</label>
+            <label><input type="checkbox" name="collection_types" value="paper"> Paper</label>
+            <label><input type="checkbox" name="collection_types" value="textile"> Textile</label>
+          </div>
+        </div>
+
+        <div id="recyclerFields" style="display:none">
+          <label class="auth-label">Facility name / address
+            <input class="auth-input" id="facilityLocation" type="text" placeholder="Facility location">
+          </label>
+          <label class="auth-label">Government authorization number
+            <input class="auth-input" id="authorizationId" type="text" placeholder="MPCB / CPCB authorization ID">
+          </label>
+          <label class="auth-label">Facility contact
+            <input class="auth-input" id="regContact" type="tel" placeholder="Official contact number">
+          </label>
+          <div class="form-grid-2">
+            <label class="auth-label">Facility type
+              <select class="auth-input" id="facilityType"><option>Authorized recycling centre</option><option>Collection centre</option><option>Material recovery facility</option><option>Recycler + dismantler</option></select>
+            </label>
+            <label class="auth-label">Service radius
+              <select class="auth-input" id="serviceRadius"><option>5 km</option><option selected>15 km</option><option>25 km</option><option>50 km+</option></select>
+            </label>
+          </div>
+          <div class="checkbox-group"><div class="auth-label">Materials accepted</div>
+            <label><input type="checkbox" name="accepted_materials" value="PCB"> PCB</label>
+            <label><input type="checkbox" name="accepted_materials" value="cable"> Cable</label>
+            <label><input type="checkbox" name="accepted_materials" value="battery"> Battery</label>
+            <label><input type="checkbox" name="accepted_materials" value="CRT"> CRT</label>
+            <label><input type="checkbox" name="accepted_materials" value="LCD"> LCD</label>
+            <label><input type="checkbox" name="accepted_materials" value="motor"> Motor</label>
+            <label><input type="checkbox" name="accepted_materials" value="mixed_plastic"> Plastic</label>
+            <label><input type="checkbox" name="accepted_materials" value="metal"> Metal</label>
+            <label><input type="checkbox" name="accepted_materials" value="hard_drive"> Hard Drive</label>
+            <label><input type="checkbox" name="accepted_materials" value="power_supply"> Power Supply</label>
+            <label><input type="checkbox" name="accepted_materials" value="mobile"> Mobile Phone</label>
+            <label><input type="checkbox" name="accepted_materials" value="printer"> Printer</label>
+            <label><input type="checkbox" name="accepted_materials" value="keyboard_mouse"> Keyboard &amp; Mouse</label>
+            <label><input type="checkbox" name="accepted_materials" value="glass"> Electronic Glass</label>
+            <label><input type="checkbox" name="accepted_materials" value="ferrous_metal"> Iron / Steel</label>
+            <label><input type="checkbox" name="accepted_materials" value="aluminum"> Aluminum</label>
+            <label><input type="checkbox" name="accepted_materials" value="copper"> Copper</label>
+            <label><input type="checkbox" name="accepted_materials" value="stainless_steel"> Stainless Steel</label>
+            <label><input type="checkbox" name="accepted_materials" value="brass"> Brass</label>
+            <label><input type="checkbox" name="accepted_materials" value="rubber"> Rubber</label>
+            <label><input type="checkbox" name="accepted_materials" value="router"> Router</label>
+            <label><input type="checkbox" name="accepted_materials" value="camera"> Camera</label>
+            <label><input type="checkbox" name="accepted_materials" value="speaker"> Speaker</label>
+            <label><input type="checkbox" name="accepted_materials" value="game_console"> Game Console</label>
+            <label><input type="checkbox" name="accepted_materials" value="solar_panel"> Solar Panel</label>
+            <label><input type="checkbox" name="accepted_materials" value="led_bulb"> LED Bulb</label>
+            <label><input type="checkbox" name="accepted_materials" value="small_appliance"> Small Appliance</label>
+            <label><input type="checkbox" name="accepted_materials" value="cardboard"> Cardboard</label>
+            <label><input type="checkbox" name="accepted_materials" value="paper"> Paper</label>
+            <label><input type="checkbox" name="accepted_materials" value="textile"> Textile</label>
+          </div>
+        </div>
+
+        <label class="auth-label cert-upload">
+          <span id="certUploadLabel">Upload collection certificate</span>
+          <input id="certFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+          <small>PDF, JPG, PNG or WEBP · Max 10 MB</small>
+        </label>
+
+        <button class="btn btn-primary auth-submit" type="submit">Submit for verification</button>
+      </form>
+      <div class="verification-note">🛡️ Your account stays locked until the submitted certification is verified.</div>
+    </div>
+
+    <div id="authMessage" class="auth-message" role="alert"></div>
+  </div>
+</div>
+
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 128 128" aria-hidden="true"><circle cx="64" cy="64" r="56" fill="#0A8A5A" opacity=".28"/><path d="M44 28c9-5 20-7 31-4l-5 10 20-1-4 19-9-7c-5-5-12-8-20-8-4 0-8 1-12 3z" fill="#BDF0D1"/><path d="M94 53c6 9 8 20 6 31l-11-2 5 19-19-2 8-9c4-5 6-12 5-19-1-4-3-8-6-11z" fill="#6EE5A6"/><path d="M47 101c-10-2-20-7-27-15l8-7-17-8 10-16 5 10c3 6 8 10 14 12 4 1 8 1 12 0z" fill="#2CCB79"/><circle cx="64" cy="64" r="12" fill="#FFFFFF" opacity=".14"/></svg>
+      <div>
+        <h1 data-i="app_name">पुनर्वापर</h1>
+        <div class="sub" data-i="app_tagline">भंगार ते अधिकृत रिसायकलर</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="lang-switch">
+        <button data-lang="mr" class="active">मर</button>
+        <button data-lang="hi">हि</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <button class="top-icon-btn" id="accountSettingsBtn" type="button" aria-label="Account & settings">⚙️</button>
+      <button class="top-logout" id="topLogout" type="button" aria-label="Logout">↪</button>
+    </div>
+  </div>
+
+  <div class="status-bar online" id="statusBar">
+    <span class="status-dot"></span>
+    <span id="statusText" data-i="status_online">ऑनलाइन</span>
+    <span class="pending" id="pendingBadge" style="display:none">0</span>
+    <button class="sync-btn" id="syncBtn" style="display:none" data-i="sync_now">सिंक करा</button>
+  </div>
+
+  <main>
+
+    <!-- ============ HOME / PRICE BOARD ============ -->
+    <section class="screen active" id="screen-home">
+      <div class="collector-dashboard-hero">
+        <div>
+          <div class="eyebrow">COLLECTOR DASHBOARD</div>
+          <div class="dashboard-welcome" id="collectorDashboardName">Welcome back 👋</div>
+          <div class="dashboard-sub" id="collectorDashboardArea">Your verified recycling workspace</div>
+        </div>
+        <div class="profile-avatar" id="collectorDashboardAvatar">C</div>
+      </div>
+
+      <div class="dashboard-stats collector-stats">
+        <div class="stat-card"><div class="stat-number" id="collectorTotalLots">0</div><div class="stat-label">My lots</div></div>
+        <div class="stat-card"><div class="stat-number" id="collectorActiveLots">0</div><div class="stat-label">Active</div></div>
+        <div class="stat-card"><div class="stat-number" id="collectorPaidEarnings">₹0</div><div class="stat-label">Paid</div></div>
+      </div>
+
+      <div class="dashboard-section-head"><div class="section-title">Find a recycler for your material</div><button class="mini-action" id="dashboardAllRecyclersBtn">View all</button></div>
+      <div class="dashboard-helper-card"><span>🤖</span><div><strong>Scan → match → handover</strong><small>After an AI scan, select the detected material below to see only authorized recyclers that accept it.</small></div></div>
+      <div class="material-filter-row" id="dashboardMaterialFilters"></div>
+      <div id="collectorRecommendedRecyclers"></div>
+
+      <div class="dashboard-section-head"><div class="section-title">Recent lots</div><button class="mini-action" id="dashboardMyLotsBtn">View lots</button></div>
+      <div id="collectorRecentLots"></div>
+
+      <div class="section-title" data-i="price_board_title">आजचा भाव फळा</div>
+      <div id="priceBoardList"></div>
+      <div class="section-title" data-i="my_ledger_title">माझी कमाई</div>
+      <div class="ledger-summary">
+        <div class="box"><div class="amt" id="homeTotalPaid">₹0</div><div class="lbl" data-i="received">मिळाले</div></div>
+        <div class="box"><div class="amt" id="homePending">₹0</div><div class="lbl" data-i="pending">बाकी</div></div>
+      </div>
+    </section>
+
+    <!-- ============ NEW LOT ============ -->
+    <section class="screen" id="screen-new">
+      <div class="section-title" data-i="select_material">माल निवडा</div>
+      <div class="material-catalog-note">♻️ <strong>30+ material categories</strong> — choose any material to find authorized recyclers.</div>
+      <div class="cat-grid" id="catGrid"></div>
+
+      <div class="material-recycler-panel" id="materialRecyclerPanel" style="display:none">
+        <div class="material-match-head">
+          <div><span class="eco-pill">♻️ VERIFIED NETWORK</span><h3 id="materialRecyclerTitle">Find recyclers</h3><p id="materialRecyclerMeta"></p></div>
+          <span class="network-leaf">🌿</span>
+        </div>
+        <div id="materialRecyclerResults"></div>
+      </div>
+
+      <div class="field-label" data-i="photo_label">फोटो काढा</div>
+      <label class="photo-box" id="photoBox">
+        <span class="emoji">📷</span>
+        <span data-i="tap_to_capture">फोटो घेण्यासाठी टॅप करा</span>
+        <input type="file" accept="image/*" capture="environment" id="photoInput" style="display:none">
+      </label>
+
+      <div class="ai-scan-card" id="aiScanCard" style="display:none">
+        <div class="ai-scan-head">
+          <div><span class="ai-badge">🤖 AI SCAN</span><h3 id="aiDeviceName">E-waste detected</h3></div>
+          <span class="ai-confidence" id="aiConfidence">0%</span>
+        </div>
+        <p class="ai-summary" id="aiSummary"></p>
+        <div class="ai-components" id="aiComponents"></div>
+        <div class="ai-safety" id="aiSafety"></div>
+        <div class="ai-disclaimer" id="aiDisclaimer">Visual estimate only — exact composition requires physical analysis.</div>
+      </div>
+
+      <div class="field-label" data-i="weight_label">अंदाजे वजन (किलो)</div>
+      <input type="number" inputmode="decimal" class="big-input" id="weightInput" placeholder="0.0">
+
+      <div class="estimate-box" id="estimateBox" style="display:none">
+        <div class="label" data-i="estimated_value">अंदाजे किंमत</div>
+        <div class="amt" id="estimateAmt">₹0</div>
+        <div class="range" id="estimateRange"></div>
+      </div>
+
+      <button class="btn btn-primary" id="createLotBtn" disabled data-i="save_lot">लॉट जतन करा</button>
+      <div class="hint" id="newLotHint" data-i="offline_hint">इंटरनेट नसतानाही जतन होईल, नंतर आपोआप सिंक होईल</div>
+    </section>
+
+    <!-- ============ LOT DETAIL / MATCH / HANDOVER ============ -->
+    <section class="screen" id="screen-lot">
+      <div class="section-title" data-i="lot_detail_title">लॉट तपशील</div>
+      <div id="lotDetailBody"></div>
+    </section>
+
+    <!-- ============ MY LOTS ============ -->
+    <section class="screen" id="screen-lots">
+      <div class="section-title" data-i="my_lots_title">माझे लॉट्स</div>
+      <div id="lotsList"></div>
+    </section>
+
+    <!-- ============ RECYCLERS ============ -->
+    <section class="screen" id="screen-recyclers">
+      <div class="section-title" data-i="nearby_recyclers_title">जवळचे अधिकृत रिसायकलर</div>
+      <div class="feature-banner">
+        <div class="feature-banner-icon">📍</div>
+        <div><strong data-i="recycler_network_title">Verified recycling network</strong><span data-i="recycler_network_subtitle">Choose an authorized centre for safer handover.</span></div>
+      </div>
+      <div id="recyclersList"></div>
+    </section>
+
+    <!-- ============ ACCOUNT & SETTINGS ============ -->
+    <section class="screen" id="screen-account">
+      <div class="screen-header-row">
+        <div>
+          <button class="back-btn" id="accountBackBtn" type="button">← <span data-i="back">Back</span></button>
+          <div class="eyebrow" data-i="account_eyebrow">PROFILE</div>
+          <div class="section-title" data-i="account_title">Account & Settings</div>
+        </div>
+        <div class="profile-avatar" id="profileAvatar">P</div>
+      </div>
+
+      <div class="profile-card modern-card">
+        <div class="profile-main">
+          <div class="profile-avatar large" id="profileAvatarLarge">P</div>
+          <div><div class="profile-name" id="profileName">Punarvapar User</div><div class="profile-meta" id="profileRole">Collector</div></div>
+        </div>
+        <div class="verification-badge" id="profileVerification">✓ Verified account</div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title" data-i="personal_preferences">Personal preferences</div>
+        <label class="settings-row"><span>🌐 <span data-i="preferred_language">Preferred language</span></span><select id="accountLanguage" class="settings-select"><option value="mr">मराठी</option><option value="hi">हिन्दी</option><option value="en">English</option></select></label>
+        <label class="settings-row"><span>📍 <span data-i="working_area">Working area</span></span><input id="accountArea" class="settings-input" placeholder="Nashik / Ahilyanagar"></label>
+        <label class="settings-row"><span>🧭 <span data-i="working_radius">Working radius</span></span><select id="accountRadius" class="settings-select"><option value="5">5 km</option><option value="10">10 km</option><option value="15">15 km</option><option value="25">25 km</option><option value="50">50 km+</option></select></label>
+        <label class="settings-row"><span>🕒 <span data-i="availability">Availability</span></span><select id="accountAvailability" class="settings-select"><option>Morning</option><option>Afternoon</option><option>Full day</option><option>Flexible</option></select></label>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title" data-i="account_details">Account details</div>
+        <label class="settings-row stacked"><span data-i="email_label">Email</span><input id="accountEmail" class="settings-input" type="email" placeholder="name@example.com"></label>
+        <label class="settings-row stacked"><span data-i="address_label">Address</span><textarea id="accountAddress" class="settings-input" rows="2" placeholder="House, area, city, district"></textarea></label>
+        <label class="settings-row stacked"><span data-i="contact_label">Alternate contact</span><input id="accountAltPhone" class="settings-input" type="tel" placeholder="Optional alternate number"></label>
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn btn-primary" id="saveAccountBtn" type="button" data-i="save_changes">Save changes</button>
+        <button class="quick-link-btn" id="helpSupportBtn" type="button"><span>🆘</span><span><strong data-i="help_support">Help & Support</strong><small data-i="help_support_sub">FAQs, contact support and troubleshooting</small></span><b>›</b></button>
+        <button class="quick-link-btn" id="privacyBtn" type="button"><span>🔒</span><span><strong data-i="privacy_security">Privacy & Security</strong><small data-i="privacy_security_sub">Session, device storage and safe account use</small></span><b>›</b></button>
+        <button class="btn btn-danger" id="accountLogoutBtn" type="button" data-i="logout">Logout</button>
+      </div>
+    </section>
+
+    <!-- ============ HELP & SUPPORT ============ -->
+    <section class="screen" id="screen-help">
+      <div class="screen-header-row">
+        <div><button class="back-btn" id="helpBackBtn" type="button">← <span data-i="back">Back</span></button><div class="eyebrow">SUPPORT</div><div class="section-title" data-i="help_title">Help & Support</div></div>
+        <div class="support-orb">🛠️</div>
+      </div>
+      <div class="support-hero modern-card">
+        <div class="support-icon">💬</div>
+        <div><h3 data-i="support_hero_title">We are here to help</h3><p data-i="support_hero_sub">Try the quick fixes below before contacting the support team.</p></div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title" data-i="quick_help">Quick help</div>
+        <details class="faq"><summary data-i="faq_login">I cannot login</summary><p data-i="faq_login_a">Check your phone number, password and selected role. Collector/recycler access is enabled only after verification.</p></details>
+        <details class="faq"><summary data-i="faq_lot">My lot is not saving</summary><p data-i="faq_lot_a">Check that a material and weight are selected. The app can save locally while offline and sync later.</p></details>
+        <details class="faq"><summary data-i="faq_camera">Camera is not opening</summary><p data-i="faq_camera_a">Allow camera permission in Android settings, then return to the New Lot screen and try again.</p></details>
+        <details class="faq"><summary data-i="faq_sync">Data is not syncing</summary><p data-i="faq_sync_a">Reconnect to the internet and tap Sync now. Pending lots remain on the device until the server accepts them.</p></details>
+      </div>
+      <div class="support-contact-grid">
+        <a class="support-contact" href="tel:+919800000000"><span>📞</span><strong data-i="call_support">Call support</strong><small>+91 98000 00000</small></a>
+        <a class="support-contact" href="mailto:support@punarvapar.demo"><span>✉️</span><strong>Email</strong><small>support@punarvapar.demo</small></a>
+        <a class="support-contact" href="https://wa.me/919800000000" target="_blank" rel="noopener"><span>💬</span><strong>WhatsApp</strong><small data-i="chat_support">Chat with support</small></a>
+        <button class="support-contact" id="copySupportId" type="button"><span>🧾</span><strong data-i="support_id">Support ID</strong><small id="supportIdValue">PV-HELP-0001</small></button>
+      </div>
+      <div class="support-note">🔐 <span data-i="support_privacy_note">Never share your password, OTP or admin credentials with support.</span></div>
+    </section>
+
+    <!-- ============ PRIVACY ============ -->
+    <section class="screen" id="screen-privacy">
+      <div class="screen-header-row"><div><button class="back-btn" id="privacyBackBtn" type="button">← <span data-i="back">Back</span></button><div class="eyebrow">SAFETY</div><div class="section-title" data-i="privacy_title">Privacy & Security</div></div><div class="support-orb">🔒</div></div>
+      <div class="security-card modern-card">
+        <div class="security-row"><span>🛡️</span><div><strong data-i="security_item1">Protected sessions</strong><small data-i="security_item1_sub">Authentication tokens are kept in app storage for the current session.</small></div></div>
+        <div class="security-row"><span>📱</span><div><strong data-i="security_item2">Local-first data</strong><small data-i="security_item2_sub">Offline lots and sync actions are stored locally until synchronized.</small></div></div>
+        <div class="security-row"><span>🚫</span><div><strong data-i="security_item3">Safe support policy</strong><small data-i="security_item3_sub">Support should never ask for passwords or OTPs.</small></div></div>
+      </div>
+      <button class="btn btn-outline" id="clearLocalProfileBtn" type="button" data-i="clear_profile_data">Clear local profile preferences</button>
+      <div class="hint" data-i="privacy_demo_note">Demo note: clearing local preferences does not delete server-side lots or registrations.</div>
+    </section>
+
+    <!-- ============ SAFETY ============ -->
+    <section class="screen" id="screen-safety">
+      <div class="section-title" data-i="safety_title">सुरक्षा माहिती</div>
+      <div id="safetyList"></div>
+    </section>
+
+    <!-- ============ RECYCLER DASHBOARD ============ -->
+    <section class="screen" id="screen-recycler-dashboard">
+      <div class="dashboard-head">
+        <div>
+          <div class="eyebrow">AUTHORIZED RECYCLER</div>
+          <div class="section-title" id="dashboardRecyclerName">Recycler dashboard</div>
+        </div>
+        <button class="logout-small" id="dashboardLogoutBtn">Logout</button>
+      </div>
+      <div id="recyclerVerificationBadge" class="verification-badge">✓ Government authorization verified</div>
+      <div class="dashboard-stats">
+        <div class="stat-card"><div class="stat-number" id="matchedLotsStat">0</div><div class="stat-label">Matched</div></div>
+        <div class="stat-card"><div class="stat-number" id="incomingLotsStat">0</div><div class="stat-label">Incoming</div></div>
+        <div class="stat-card"><div class="stat-number" id="handedOverStat">0</div><div class="stat-label">Handed over</div></div>
+      </div>
+      <div class="dashboard-recycler-profile" id="recyclerAcceptedMaterials"></div>
+      <div class="dashboard-section-head"><div class="section-title">Incoming & matched collection lots</div><button class="mini-action" id="refreshRecyclerDashboardBtn">Refresh</button></div>
+      <div id="recyclerLotsList"></div>
+    </section>
+
+  </main>
+
+  <nav class="bottom" id="collectorNav">
+    <button class="nav-btn active" data-screen="home"><span class="icon">🏠</span><span data-i="nav_home">भाव</span></button>
+    <button class="nav-btn" data-screen="lots"><span class="icon">📦</span><span data-i="nav_lots">लॉट्स</span></button>
+    <button class="nav-btn fab" data-screen="new"><span class="icon">➕</span><span data-i="nav_new">नवीन</span></button>
+    <button class="nav-btn" data-screen="recyclers"><span class="icon">🏭</span><span data-i="nav_recyclers">रिसायकलर</span></button>
+    <button class="nav-btn" data-screen="safety"><span class="icon">⚠️</span><span data-i="nav_safety">सुरक्षा</span></button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

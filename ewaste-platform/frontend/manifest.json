@@ -1,0 +1,12 @@
+{
+  "name": "Punarvapar - Scrap Collector",
+  "short_name": "Punarvapar",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F1FAF5",
+  "theme_color": "#087A4A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
