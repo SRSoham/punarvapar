@@ -4,7 +4,7 @@
    Sync: queued lots/handovers pushed to backend on reconnect
    ============================================================ */
 
-const DEFAULT_API_BASE = "http://127.0.0.1:8000";
+const DEFAULT_API_BASE = "https://punarvapar.onrender.com";
 let API_BASE = DEFAULT_API_BASE;
 let lang = localStorage.getItem("lang") || "mr";
 let collectorId = localStorage.getItem("collector_id") || null;
