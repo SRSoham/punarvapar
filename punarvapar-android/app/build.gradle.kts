@@ -22,10 +22,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            buildConfigField("String", "BACKEND_URL", "\"http://10.55.36.142:8000\"")
+            buildConfigField("String", "BACKEND_URL", "\"https://punarvapar.onrender.com\"")
         }
         debug {
-            buildConfigField("String", "BACKEND_URL", "\"http://10.55.36.142:8000\"")
+            buildConfigField("String", "BACKEND_URL", "\"https://punarvapar.onrender.com\"")
         }
     }
 

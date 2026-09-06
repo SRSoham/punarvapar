@@ -10,5 +10,5 @@ public final class BuildConfig {
   public static final int VERSION_CODE = 2;
   public static final String VERSION_NAME = "1.0";
   // Field from build type: debug
-  public static final String BACKEND_URL = "http://10.55.36.142:8000";
+  public static final String BACKEND_URL = "https://punarvapar.onrender.com";
 }
