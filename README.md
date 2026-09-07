@@ -14,7 +14,7 @@ https://punarvapar.onrender.com/
 https://punarvapar.onrender.com/docs
 
 ### 📱 Android APK
-[Download the latest Android release](https://github.com/SRSoham/punarvapar-hackathon/releases)
+[Download the latest Android release](https://github.com/SRSoham/punarvapar/releases)
 
 > The Render backend uses a free instance, so the first request after inactivity may take longer while the service wakes up.
 
