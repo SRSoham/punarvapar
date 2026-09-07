@@ -4,21 +4,8 @@
    Sync: queued lots/handovers pushed to backend on reconnect
    ============================================================ */
 
-const DEFAULT_API_BASE = "http://127.0.0.1:8000";
+const DEFAULT_API_BASE = "https://punarvapar.onrender.com";
 let API_BASE = DEFAULT_API_BASE;
-try {
-  if (window.PunarvaparNative && typeof window.PunarvaparNative.getBackendUrl === "function") {
-    const nativeApi = window.PunarvaparNative.getBackendUrl();
-    if (nativeApi) {
-      API_BASE = nativeApi.replace(/\/$/, "");
-      localStorage.setItem("api_base", API_BASE);
-    }
-  } else {
-    API_BASE = (localStorage.getItem("api_base") || DEFAULT_API_BASE).replace(/\/$/, "");
-  }
-} catch (_) {
-  API_BASE = (localStorage.getItem("api_base") || DEFAULT_API_BASE).replace(/\/$/, "");
-}
 let lang = localStorage.getItem("lang") || "mr";
 let collectorId = localStorage.getItem("collector_id") || null;
 let currentLot = null;       // in-progress new lot draft
@@ -123,6 +110,21 @@ async function ensureCollector() {
   throw new Error("Collector authentication required");
 }
 
+
+// ---------------- Theme ----------------
+function applyTheme(theme) {
+  const dark = theme === "dark";
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  localStorage.setItem("theme", dark ? "dark" : "light");
+  const toggle = document.getElementById("themeToggle");
+  if (toggle) toggle.checked = dark;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = dark ? "#082218" : "#0B6B45";
+}
+function initTheme() {
+  const saved = localStorage.getItem("theme");
+  applyTheme(saved === "dark" ? "dark" : "light");
+}
 
 // ---------------- Profile / settings ----------------
 function profileStorageKey(phone) { return "punarvapar_profile_" + String(phone || "").replace(/\s+/g, ""); }
@@ -656,7 +658,7 @@ function renderAiAnalysis(data) {
     </div>`).join("");
   document.getElementById("aiSafety").innerHTML = (data.safety_notes || []).map(n => `<div>⚠️ ${n}</div>`).join("");
   document.getElementById("aiDisclaimer").textContent = data.disclaimer || "Visual estimate only — exact composition requires physical analysis.";
-  const sourceLabel = data.analysis_mode === "fallback" ? "🛟 Smart Fallback" : "✨ Gemini AI";
+  const sourceLabel = data.analysis_mode === "fallback" ? "🛟 Smart Fallback" : data.analysis_mode === "quality_gate" ? "⚠️ Image Quality Check" : "✨ Gemini AI";
   document.getElementById("aiSummary").textContent = `${sourceLabel} · ${data.summary || ""}`;
 
   if (data.is_e_waste === false && !data.recommended_category) {
@@ -664,7 +666,8 @@ function renderAiAnalysis(data) {
     const panel = document.getElementById("materialRecyclerPanel");
     if (panel) panel.style.display = "none";
     if (data.analysis_mode === "fallback") toast("AI is temporarily unavailable — choose the correct material from the full list below.");
-    else toast("No electronic waste detected — please choose the correct recyclable material manually.");
+    else if (data.analysis_mode === "quality_gate") toast(data.quality_reason || "Image needs better lighting or more visible detail.");
+    else toast("No electronic waste detected — please choose the correct material manually.");
     return;
   }
   if (data.recommended_category) {
@@ -700,7 +703,15 @@ async function analyzeImageWithAI(file) {
     const result = await submitMultipart("/ai/analyze-image", fd);
     renderAiAnalysis(result);
   } catch (e) {
-    if (card) card.style.display = "none";
+    if (card) {
+      card.style.display = "block";
+      document.getElementById("aiDeviceName").textContent = "AI scan unavailable";
+      document.getElementById("aiConfidence").textContent = "—";
+      document.getElementById("aiSummary").textContent = "The image could not be classified right now. Please retry in good lighting or select the material manually.";
+      document.getElementById("aiComponents").innerHTML = "";
+      document.getElementById("aiSafety").innerHTML = "";
+      document.getElementById("aiDisclaimer").textContent = "No material category was inferred because the AI result was unavailable.";
+    }
     toast("AI scan unavailable: " + (e.message || "try again"));
   }
 }
@@ -1189,6 +1200,7 @@ function exitAdmin() {
 
 // ---------------- Init ----------------
 async function init() {
+  initTheme();
   await openDB();
 
   document.querySelectorAll(".lang-switch button").forEach(btn => {
@@ -1221,6 +1233,8 @@ async function init() {
   if (refreshRecyclerBtn) refreshRecyclerBtn.onclick = renderRecyclerDashboard;
   document.getElementById("topLogout").onclick = logout;
   document.getElementById("accountSettingsBtn").onclick = openAccountScreen;
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) themeToggle.onchange = () => applyTheme(themeToggle.checked ? "dark" : "light");
   document.getElementById("accountBackBtn").onclick = () => showScreen("home");
   document.getElementById("helpBackBtn").onclick = () => showScreen("account");
   document.getElementById("privacyBackBtn").onclick = () => showScreen("account");

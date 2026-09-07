@@ -1,4 +1,4 @@
-const CACHE_NAME = "punarvapar-v3-materials-ai";
+const CACHE_NAME = "punarvapar-v4-ai-darkmode-quality";
 const ASSETS = [
   "./", "./index.html", "./styles.css", "./app.js", "./i18n.js",
   "./manifest.json", "./icon.svg",
