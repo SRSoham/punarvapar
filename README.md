@@ -5,7 +5,7 @@ Punarvapar is a full-stack e-waste collection and recycling platform that connec
 ## 🔗 Live Demo
 
 ### 🌐 Web Application
-https://srsoham.github.io/punarvapar-hackathon/
+https://srsoham.github.io/punarvapar/
 
 ### ⚙️ Backend API
 https://punarvapar.onrender.com/
