@@ -13,6 +13,8 @@ from typing import List, Optional
 import json
 
 
+from PIL import Image, ImageStat
+
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -491,6 +493,27 @@ async def analyze_ewaste_image(
     if len(raw) > 10 * 1024 * 1024:
         raise HTTPException(413, "Image is too large. Please use an image under 10 MB")
 
+    # Visual-quality gate: prevent the model/fallback from guessing when the
+    # photo is essentially dark/blank or too low-detail to classify safely.
+    try:
+        pil_img = Image.open(BytesIO(raw)).convert("L")
+        if pil_img.width < 160 or pil_img.height < 160:
+            return _ai_quality_gate_result("The image is too small to classify reliably. Please take a clearer photo.")
+        sample = pil_img.resize((64, 64))
+        stat = ImageStat.Stat(sample)
+        mean_brightness = stat.mean[0]
+        std_brightness = stat.stddev[0]
+        pixels = list(sample.getdata())
+        dark_ratio = sum(px < 55 for px in pixels) / len(pixels)
+        # Covers dark rooms/covered-lens photos while still allowing normally
+        # lit dark-colored e-waste items through to Gemini.
+        if (mean_brightness < 42 and dark_ratio > 0.78) or (mean_brightness < 30 and std_brightness < 16):
+            return _ai_quality_gate_result("The image is too dark or lacks enough visible detail to classify safely. Please retake it in better lighting.")
+    except Exception:
+        # If the lightweight quality check itself cannot read the image, let
+        # Gemini decide rather than blocking a valid image format.
+        pass
+
     if not GEMINI_API_KEY or genai is None or genai_types is None:
         return _ai_fallback_result(hint_category, "Gemini is not configured on the backend.")
 
@@ -518,15 +541,16 @@ Return ONLY JSON matching the provided schema.
 
 Rules:
 1. First decide whether the photographed object is electronic/electrical waste. Set is_e_waste=false for ordinary non-electronic objects such as spoons, plates, bottles, furniture, clothing, food, stationery, tools without electronics, etc.
-2. If is_e_waste=false, set recommended_category=null, set device to a concise description such as "Non-electronic item", explain that the item is not e-waste, and do not force it into PCB or another e-waste category.
-3. If is_e_waste=true, identify the most likely visible device first (examples: laptop, desktop, phone, TV, monitor, printer, router, camera, speaker, game console, solar panel, bulb, small appliance, mixed electronics).
-4. List only components that are visible or strongly inferable from the device construction. Do not claim to literally see components that are fully hidden.
-5. For each component, provide typical/likely material associations relevant to recycling (examples: copper, aluminum, steel, stainless steel, plastic, glass, silicon, gold-plated contacts, lead-containing CRT glass, lithium-ion battery materials).
-6. These are material associations, NOT an exact chemical/elemental assay. Never state that an element is scientifically confirmed from the photo alone.
-7. Flag a component hazardous when mishandling it could create meaningful safety/environmental risk (especially batteries, CRT glass, lamps, damaged capacitors/components).
-8. recommended_category MUST be one of: PCB, cable, battery, CRT, LCD, motor, mixed_plastic, metal, ferrous_metal, aluminum, copper, stainless_steel, brass, rubber, hard_drive, power_supply, mobile, printer, router, camera, speaker, game_console, solar_panel, led_bulb, small_appliance, keyboard_mouse, glass, cardboard, paper, textile, or null when not e-waste.
-9. confidence values must be between 0 and 1.
-10. Never use PCB as a generic fallback for an ordinary object. Only recommend PCB when a circuit board/electronic assembly is actually visible or strongly justified.
+2. If the image is too dark, blank, severely blurred, heavily obstructed, or lacks enough visible detail to identify the object, set is_e_waste=false, recommended_category=null, confidence=0, and explain that the image needs to be retaken. Never guess from missing visual information.
+3. If is_e_waste=false, set recommended_category=null, set device to a concise description such as "Non-electronic item", explain that the item is not e-waste, and do not force it into PCB or another e-waste category.
+4. If is_e_waste=true, identify the most likely visible device first (examples: laptop, desktop, phone, TV, monitor, printer, router, camera, speaker, game console, solar panel, bulb, small appliance, mixed electronics).
+5. List only components that are visible or strongly inferable from the device construction. Do not claim to literally see components that are fully hidden.
+6. For each component, provide typical/likely material associations relevant to recycling (examples: copper, aluminum, steel, stainless steel, plastic, glass, silicon, gold-plated contacts, lead-containing CRT glass, lithium-ion battery materials).
+7. These are material associations, NOT an exact chemical/elemental assay. Never state that an element is scientifically confirmed from the photo alone.
+8. Flag a component hazardous when mishandling it could create meaningful safety/environmental risk (especially batteries, CRT glass, lamps, damaged capacitors/components).
+9. recommended_category MUST be one of: PCB, cable, battery, CRT, LCD, motor, mixed_plastic, metal, ferrous_metal, aluminum, copper, stainless_steel, brass, rubber, hard_drive, power_supply, mobile, printer, router, camera, speaker, game_console, solar_panel, led_bulb, small_appliance, keyboard_mouse, glass, cardboard, paper, textile, or null when not e-waste.
+10. confidence values must be between 0 and 1.
+11. Never use PCB as a generic fallback for an ordinary object. Only recommend PCB when a circuit board/electronic assembly is actually visible or strongly justified.
 """
 
     def _call_model(model_name: str):
@@ -574,6 +598,23 @@ Rules:
             break
 
     return _ai_fallback_result(hint_category, str(last_error)[:220] if last_error else "Gemini did not return a usable result.")
+
+
+def _ai_quality_gate_result(reason: str):
+    return {
+        "device": "Insufficient visual information",
+        "confidence": 0.0,
+        "summary": "Punarvapar could not classify this image safely because too little useful visual detail is visible.",
+        "is_e_waste": False,
+        "recommended_category": None,
+        "components": [],
+        "safety_notes": [],
+        "ai_model": "punarvapar-visual-quality-gate",
+        "analysis_mode": "quality_gate",
+        "quality_gate": True,
+        "quality_reason": reason,
+        "disclaimer": "No material category is inferred when the image is too dark, blank, obscured, or low-detail. Retake the photo in good lighting.",
+    }
 
 
 def _ai_fallback_result(hint_category: Optional[str], reason: str = ""):
