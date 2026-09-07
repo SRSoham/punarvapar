@@ -4,6 +4,14 @@ Punarvapar ("re-utilization" in Sanskrit) is a full-stack platform that connects
 
 > Originally built as a hackathon project — this repo bundles the complete backend, frontend, and Android wrapper.
 
+## 🔗 Live Demo
+
+- **Web app:** [srsoham.github.io/punarvapar](https://srsoham.github.io/punarvapar/)
+- **Backend API:** [punarvapar.onrender.com](https://punarvapar.onrender.com)
+- **Android APK:** [Download latest release](https://github.com/SRSoham/punarvapar/releases/latest)
+
+> ⚠️ The backend is hosted on Render's free tier — it spins down when idle, so the first request after inactivity can take 30–60 seconds to respond.
+
 ## ✨ Features
 
 - **AI e-waste scanner** — snap a photo and get the material/category identified automatically (Gemini API).
