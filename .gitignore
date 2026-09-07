@@ -1,0 +1,45 @@
+# --- Secrets ---
+.env
+.env.*
+*.pem
+*.key
+google-services.json
+local.properties
+
+# --- Python (backend) ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+*.sqlite3
+*.db
+
+# --- Node / Frontend build artifacts (if any) ---
+node_modules/
+dist/
+build/
+.cache/
+
+# --- Android ---
+punarvapar-android/.gradle/
+punarvapar-android/.idea/
+punarvapar-android/local.properties
+punarvapar-android/*.iml
+punarvapar-android/app/build/
+punarvapar-android/build/
+punarvapar-android/captures/
+punarvapar-android/*.apk
+punarvapar-android/*.aab
+punarvapar-android/*.jks
+punarvapar-android/*.keystore
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
