@@ -187,17 +187,23 @@ function updateAuthRoleUI() {
   const registerTitle = document.getElementById("registerTitle");
   const demo = document.getElementById("demoCredentials");
   const certLabel = document.getElementById("certUploadLabel");
+  const certGroup = document.getElementById("certUploadGroup");
+  const certFile = document.getElementById("certFile");
+  const verificationNote = document.getElementById("verificationNote");
   if (loginTitle) loginTitle.textContent = isRecycler ? "Authorized Recycler Login" : "Collector Login";
   if (registerTitle) registerTitle.textContent = isRecycler ? "Recycler Registration" : "Collector Registration";
   if (demo) demo.textContent = isRecycler
     ? "Recycler: +919800000001 · demo1234"
     : "Collector: 9999999999 · demo1234";
-  if (certLabel) certLabel.textContent = isRecycler
-    ? "Upload government authorization certificate"
-    : "Upload collection certificate / permit";
+  if (certLabel) certLabel.textContent = "Upload government authorization certificate";
+  if (certGroup) certGroup.style.display = isRecycler ? "block" : "none";
+  if (certFile) certFile.required = isRecycler;
+  if (verificationNote) verificationNote.textContent = isRecycler
+    ? "🛡️ Recycler accounts stay locked until authorization is verified."
+    : "♻️ Collectors can register without a certificate.";
   document.getElementById("collectorFields").style.display = isRecycler ? "none" : "block";
   document.getElementById("recyclerFields").style.display = isRecycler ? "block" : "none";
-  ["certNumber","operatingLocation","facilityLocation","authorizationId","regContact"].forEach(id => {
+  ["operatingLocation","facilityLocation","authorizationId","regContact"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.required = false;
   });
@@ -206,7 +212,6 @@ function updateAuthRoleUI() {
     document.getElementById("authorizationId").required = true;
     document.getElementById("regContact").required = true;
   } else {
-    document.getElementById("certNumber").required = true;
     document.getElementById("operatingLocation").required = true;
   }
 }
@@ -257,9 +262,9 @@ async function doLogin(e) {
 async function doRegister(e) {
   e.preventDefault();
   clearAuthMessage();
-  const file = document.getElementById("certFile").files[0];
-  if (!file) return setAuthMessage("Please upload your certification document.");
-  if (file.size > 10 * 1024 * 1024) return setAuthMessage("Certification file must be 10 MB or smaller.");
+  const file = document.getElementById("certFile")?.files[0];
+  if (authRole === "recycler" && !file) return setAuthMessage("Please upload your government authorization certificate.");
+  if (file && file.size > 10 * 1024 * 1024) return setAuthMessage("Certification file must be 10 MB or smaller.");
 
   const get = id => document.getElementById(id)?.value?.trim() || "";
   const extra = {
@@ -285,9 +290,8 @@ async function doRegister(e) {
   fd.append("name", get("regName"));
   fd.append("phone", get("regPhone"));
   fd.append("password", document.getElementById("regPassword").value);
-  fd.append("certification", file);
+  if (authRole === "recycler" && file) fd.append("certification", file);
   if (authRole === "collector") {
-    fd.append("certification_number", get("certNumber"));
     fd.append("operating_location", get("operatingLocation") || get("regArea") || get("regCity"));
     fd.append("preferred_language", get("preferredLanguage") || lang);
   } else {
@@ -302,7 +306,7 @@ async function doRegister(e) {
     const data = await submitMultipart("/auth/register/" + authRole, fd);
     const phone = get("regPhone");
     if (phone) localStorage.setItem(profileStorageKey(phone), JSON.stringify({ ...extra, phone, preferred_language: get("preferredLanguage") || lang, operating_location: get("operatingLocation") || get("regArea") || get("regCity"), facility_location: get("facilityLocation") }));
-    setAuthMessage(data.message + ". You can log in after approval.", "success");
+    setAuthMessage(data.message || (authRole === "recycler" ? "Registration submitted for verification" : "Registration successful"), "success");
     e.target.reset();
   } catch (err) {
     setAuthMessage(err.message || "Registration failed");

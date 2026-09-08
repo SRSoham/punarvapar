@@ -232,23 +232,19 @@ async def register_collector(
     name: str = Form(...),
     phone: str = Form(...),
     password: str = Form(...),
-    certification_number: str = Form(...),
     operating_location: str = Form(...),
     preferred_language: str = Form("mr"),
-    certification: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
     if db.query(models.Collector).filter(models.Collector.phone == phone).first():
         raise HTTPException(409, "A collector with this phone number already exists")
-    cert_name = save_certificate(certification, "collector")
     c = models.Collector(
         name=name.strip(), phone=phone.strip(), password_hash=hash_password(password),
-        certification_number=certification_number.strip(), certification_file=cert_name,
         operating_location=operating_location.strip(), preferred_language=preferred_language,
-        verification_status="pending"
+        verification_status="approved"
     )
     db.add(c); db.commit(); db.refresh(c)
-    return {"status": "pending", "message": "Registration submitted for verification", "user_id": c.id}
+    return {"status": "approved", "message": "Collector registration successful. You can log in now.", "user_id": c.id}
 
 
 @app.post("/auth/register/recycler")

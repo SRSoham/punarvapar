@@ -36,7 +36,7 @@
       <div><div class="eyebrow">ADMIN ONLY</div><h2>Verification Queue</h2></div>
       <button id="adminLogoutBtn" class="logout-small" type="button">Logout</button>
     </div>
-    <p class="auth-help">Review submitted certificates before granting collector or recycler access.</p>
+    <p class="auth-help">Collectors can register directly. Recycler authorization is reviewed before access is granted.</p>
     <div class="admin-summary" id="adminSummary"></div>
     <div class="admin-section-title">Pending collector applications</div>
     <div id="adminCollectors"></div>
@@ -135,9 +135,6 @@
         </label>
 
         <div id="collectorFields">
-          <label class="auth-label">Collection certificate / permit number
-            <input class="auth-input" id="certNumber" type="text" placeholder="Certificate / permit ID" required>
-          </label>
           <label class="auth-label">Operating location
             <input class="auth-input" id="operatingLocation" type="text" placeholder="City / district" required>
           </label>
@@ -243,15 +240,15 @@
           </div>
         </div>
 
-        <label class="auth-label cert-upload">
-          <span id="certUploadLabel">Upload collection certificate</span>
-          <input id="certFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+        <label class="auth-label cert-upload" id="certUploadGroup" style="display:none">
+          <span id="certUploadLabel">Upload government authorization certificate</span>
+          <input id="certFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp">
           <small>PDF, JPG, PNG or WEBP · Max 10 MB</small>
         </label>
 
-        <button class="btn btn-primary auth-submit" type="submit">Submit for verification</button>
+        <button class="btn btn-primary auth-submit" type="submit">Register</button>
       </form>
-      <div class="verification-note">🛡️ Your account stays locked until the submitted certification is verified.</div>
+      <div class="verification-note" id="verificationNote">🛡️ Recycler accounts require authorization verification before access.</div>
     </div>
 
     <div id="authMessage" class="auth-message" role="alert"></div>
